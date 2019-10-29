@@ -11,7 +11,7 @@ SwerveModule2903 LeftFront;
 // SwerveModule2903 RightFront;
 //SwerveModule2903 RightRear;
   
-  int targetAngle = 0;
+int targetAngle = 0;
 
   public void init() {
     LeftFront = new SwerveModule2903(RobotMap.LeftFrontForward, RobotMap.LeftFrontTurn);
@@ -28,9 +28,14 @@ SwerveModule2903 LeftFront;
   }
 
   public int joystickAngle(double x, double y) {
-    if (Math.abs(x) > 0.01 || Math.abs(y) > 0.01)
-      targetAngle = (int)Math.toDegrees(Math.atan2(x, y));
-    return targetAngle;
+    int angle = -1;
+    if (Math.abs(x) > 0.1 || Math.abs(y) > 0.1) {
+      angle = (int)Math.toDegrees(Math.atan2(x, y));
+      if (angle < 0)
+        angle += 360;
+      targetAngle = angle;
+    }
+    return angle;
   }
 
   public double joystickMag(double x, double y) {
@@ -40,14 +45,14 @@ SwerveModule2903 LeftFront;
   public void swerveDrive(double power, double angle, double turn) {
     // LeftRear.setTurnDegrees((int)(angle-(turn*-45)));
     //RightRear.setTurnDegrees((int)(angle-(turn*-135)));
-    LeftFront.setTurnDegrees((int)(angle-(turn*45)));
+    LeftFront.setTurnDegrees((int)-(turn*45)+((angle > -1) ? (int)angle : targetAngle));
     // RightFront.setTurnDegrees((int)(angle-(turn*135)));
 
     // LeftRear.setForward(power);
     //RightRear.setForward(power);
     LeftFront.setForward(power);
     // RightFront.setForward(power);
-
+    SmartDashboard.putNumber("Swerve Forward Speed", power);
     SmartDashboard.putNumber("Swerve Current Angle", LeftFront.getTurnDegrees());
     SmartDashboard.putNumber("Swerve Target Angle", angle);
     SmartDashboard.putNumber("Swerve LeftFront Current", LeftFront.getAbsoluteTurnTicks());

@@ -7,7 +7,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
 class SwerveModule2903 {
-    private SafeCANSparkMax ForwardMotor;
+    private CANSparkMax ForwardMotor;
     private WPI_TalonSRX TurnMotor;
     final int TICKS_PER_REV = 4096*6;
     final int DEG_PER_REV = 360;
@@ -42,11 +42,11 @@ class SwerveModule2903 {
   }
 
   public int getTurnTicks() {
-   return TurnMotor.getSensorCollection().getQuadraturePosition() % TICKS_PER_REV;
+   return TurnMotor.getSensorCollection().getQuadraturePosition();// % TICKS_PER_REV;
   }
 
   public int getAbsoluteTurnTicks() {
-    return TurnMotor.getSensorCollection().getPulseWidthPosition() % TICKS_PER_REV;
+    return TurnMotor.getSensorCollection().getPulseWidthPosition();// % TICKS_PER_REV;
    }
 
   public int getTurnDegrees() {
@@ -54,25 +54,22 @@ class SwerveModule2903 {
   }
 
   public void setTurnDegrees(int degrees) {
-    int localDeg = degrees;
-    if (Math.abs(getTurnDegrees() - degrees) > DEG_PER_REV/2) {
-        //TurnMotor.setSelectedSensorPosition(
-        //(int)angleToTicks((getTurnDegrees() < 0) ? degrees + DEG_PER_REV : degrees - DEG_PER_REV), 
-        //kPIDLoopIdx, 
-        //kTimeoutMs
-        //);
-    }
-    TurnMotor.set(ControlMode.Position,angleToTicks(localDeg%180));
+    int localDeg = degrees - getTurnDegrees() % 360;
+    if (localDeg < -180)
+    localDeg += 360;
+    else if (localDeg > 180)
+    localDeg -= 360;
+    TurnMotor.set(ControlMode.Position,angleToTicks(getTurnDegrees()+localDeg));
   }
 
   public int ticksToAngle (int ticks) {
-    double remainder = ticks % TICKS_PER_REV;
+    double remainder = ticks;// % TICKS_PER_REV;
     remainder /= TICKS_PER_REV;
     return (int)(remainder * DEG_PER_REV);
   }
 
   public int angleToTicks (int angle) {
-    double remainder = angle % DEG_PER_REV;
+    double remainder = angle;// % DEG_PER_REV;
     remainder /= DEG_PER_REV;
     return (int)(remainder * TICKS_PER_REV);
   }
