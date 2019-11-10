@@ -6,18 +6,22 @@ import com.ctre.phoenix.motorcontrol.can.WPI_TalonSRX;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 
+import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 class SwerveModule2903 {
-    private CANSparkMax ForwardMotor;
-    private WPI_TalonSRX TurnMotor;
+    public CANSparkMax ForwardMotor;
+    public WPI_TalonSRX TurnMotor;
+    public DigitalInput limit;
     final int TICKS_PER_REV = 4096*6;
     final int DEG_PER_REV = 360;
     public static final int kPIDLoopIdx = 0;
     public static final int kTimeoutMs = 30;
 
-  public SwerveModule2903(int forwardMotorId, int turnMotorId) {
+  public SwerveModule2903(int forwardMotorId, int turnMotorId, int limitId) {
     ForwardMotor = new SafeCANSparkMax(forwardMotorId, MotorType.kBrushless);
     TurnMotor = new WPI_TalonSRX(turnMotorId);
-
+    limit = new DigitalInput(limitId);
     TurnMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, kPIDLoopIdx, kTimeoutMs);
     /**
      * Grab the 360 degree position of the MagEncoder's absolute
@@ -35,6 +39,19 @@ class SwerveModule2903 {
 
   public void setForward(double speed) {
     ForwardMotor.set(speed);
+  }
+
+  public boolean getLimit() {
+    return limit.get();
+  }
+
+  public void zeroTurnMotor() {
+    while (!limit.get()) {
+      TurnMotor.set(ControlMode.PercentOutput, 1);
+      SmartDashboard.putBoolean("Init Limit", getLimit());
+    }
+    TurnMotor.set(ControlMode.PercentOutput, 0);
+    setZero(0);
   }
 
   public void setZero(int newZero) {

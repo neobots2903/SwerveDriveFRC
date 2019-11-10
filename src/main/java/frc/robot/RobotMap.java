@@ -37,7 +37,7 @@ public class RobotMap {
   public static final int LeftFrontTurn = 5;
   //Spark IDs
   public static final int LeftFrontForward = 6;
-  public static final int RightRearForward = 21;
+  public static final int RightRearForward = 2;
 
   //Controller #'s
   public static final int DriveJoy = 0;
@@ -49,8 +49,8 @@ public class RobotMap {
   // public static final int LineSensorRight = 5;
   // public static final int LineSensorFarLeft = 2;
   // public static final int LineSensorFarRight = 6;
-  public static final int bottomHall = 0;
-  public static final int upperHall = 1;
+  public static final int LeftFrontLimit = 0;
+  public static final int RightRearLimit = 1;
 
   //PWM Ports
   public static final int rampServoLeft = 1;
