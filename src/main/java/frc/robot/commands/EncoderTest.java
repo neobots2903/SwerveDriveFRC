@@ -7,6 +7,7 @@
 
 package frc.robot.commands;
 
+import com.ctre.phoenix.motorcontrol.ControlMode;
 import com.ctre.phoenix.motorcontrol.FeedbackDevice;
 import com.ctre.phoenix.motorcontrol.can.TalonSRX;
 
@@ -26,14 +27,16 @@ public class EncoderTest extends Command {
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    encoderMotor = new TalonSRX(35);
-    encoderMotor.configSelectedFeedbackSensor(FeedbackDevice.PulseWidthEncodedPosition, 0, 10);
+    //encoderMotor = new TalonSRX(35);
+    //encoderMotor.configSelectedFeedbackSensor(FeedbackDevice.PulseWidthEncodedPosition, 0, 10);
   }
 
   // Called repeatedly when this Command is scheduled to run
   @Override
   protected void execute() {
-    SmartDashboard.putNumber("Encoder Value: ", encoderMotor.getSelectedSensorPosition());
+    //SmartDashboard.putNumber("Encoder Value: ", encoderMotor.getSelectedSensorPosition());
+    Robot.swerveDriveSubsystem.LeftFront.TurnMotor.set(ControlMode.PercentOutput, 1);
+    Robot.swerveDriveSubsystem.RightRear.TurnMotor.set(ControlMode.PercentOutput, 1);
   }
 
   // Make this return true when this Command no longer needs to run execute()

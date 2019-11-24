@@ -2,18 +2,19 @@ package frc.robot.subsystems;
 
 import edu.wpi.first.wpilibj.command.Subsystem;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+import frc.robot.Robot;
 import frc.robot.RobotMap;
 
 public class SwerveDrive2903 extends Subsystem {
 
-SwerveModule2903 LeftFront;
-// SwerveModule2903 LeftRear;
-// SwerveModule2903 RightFront;
-SwerveModule2903 RightRear;
+  public SwerveModule2903 LeftFront;
+  // SwerveModule2903 LeftRear;
+  // SwerveModule2903 RightFront;
+  public SwerveModule2903 RightRear;
 
-double deadzone = 0.01;
-  
-int targetAngle = 0;
+  double deadzone = 0.01; // joystick isn't actually in center, making sure doesn't move when not touched :)
+    
+  int targetAngle = 0;
 
   public void init() {
     LeftFront = new SwerveModule2903(RobotMap.LeftFrontForward, RobotMap.LeftFrontTurn, RobotMap.LeftFrontLimit);
@@ -49,11 +50,17 @@ int targetAngle = 0;
     return Math.sqrt(x*x+y*y);
   }
 
-  public void swerveDrive(double power, double angle, double turn) {
+  public void swerveDrive(double power, double angle, double turn, boolean fieldCentric) {
+
+    if (fieldCentric) {
+      angle -= Robot.navXSubsystem.turnAngle();
+    }
+    
     // LeftRear.setTurnDegrees((int)(angle-(turn*-45)));
     if (angle != -1) {
       RightRear.setTurnDegrees((int)(angle-(turn*-135)));
       LeftFront.setTurnDegrees((int)(angle-(turn*45)));
+
     } else {
       RightRear.setTurnDegrees((int)(targetAngle-(turn*-135)));
       LeftFront.setTurnDegrees((int)(targetAngle-(turn*45)));
@@ -61,9 +68,10 @@ int targetAngle = 0;
     // RightFront.setTurnDegrees((int)(angle-(turn*135)));
 
     //LeftRear.setForward(power);
-    if (deadzone < power)
-      RightRear.setForward(power);
-      LeftFront.setForward(power);
+    if (deadzone < Math.abs(power)) {
+      RightRear.setForward(power/5);
+      LeftFront.setForward(power/5);
+    }
     // RightFront.setForward(power);
     SmartDashboard.putNumber("Swerve Forward Speed", power);
     SmartDashboard.putNumber("Swerve Current Angle", LeftFront.getTurnDegrees());
@@ -75,9 +83,9 @@ int targetAngle = 0;
     SmartDashboard.putBoolean("Swerve RightRear Limit", RightRear.getLimit());
     
     if (SmartDashboard.getNumber("Swerve LeftFront Amperage", 0) < LeftFront.TurnMotor.getOutputCurrent())
-    SmartDashboard.putNumber("Swerve LeftFront Amperage", LeftFront.TurnMotor.getOutputCurrent());
+      SmartDashboard.putNumber("Swerve LeftFront Amperage", LeftFront.TurnMotor.getOutputCurrent());
     if (SmartDashboard.getNumber("Swerve RightRear Amperage", 0) < RightRear.TurnMotor.getOutputCurrent())
-    SmartDashboard.putNumber("Swerve RightRear Amperage", RightRear.TurnMotor.getOutputCurrent());
+      SmartDashboard.putNumber("Swerve RightRear Amperage", RightRear.TurnMotor.getOutputCurrent());
   }
 
   @Override

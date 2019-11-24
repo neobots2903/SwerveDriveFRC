@@ -9,20 +9,26 @@ import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
-class SwerveModule2903 {
-    public CANSparkMax ForwardMotor;
-    public WPI_TalonSRX TurnMotor;
-    public DigitalInput limit;
-    final int TICKS_PER_REV = 4096*6;
-    final int DEG_PER_REV = 360;
-    public static final int kPIDLoopIdx = 0;
-    public static final int kTimeoutMs = 30;
+public class SwerveModule2903 {
+  public CANSparkMax ForwardMotor;
+  public WPI_TalonSRX TurnMotor;
+  public DigitalInput limit;
+  final int TICKS_PER_REV = 4096*6;
+  final int DEG_PER_REV = 360;
+  public static final int kPIDLoopIdx = 0;
+  public static final int kTimeoutMs = 30;
+  boolean isForward = true;
 
   public SwerveModule2903(int forwardMotorId, int turnMotorId, int limitId) {
     ForwardMotor = new SafeCANSparkMax(forwardMotorId, MotorType.kBrushless);
     TurnMotor = new WPI_TalonSRX(turnMotorId);
     limit = new DigitalInput(limitId);
     TurnMotor.configSelectedFeedbackSensor(FeedbackDevice.QuadEncoder, kPIDLoopIdx, kTimeoutMs);
+
+    TurnMotor.configPeakCurrentLimit(45, kTimeoutMs);
+    TurnMotor.configPeakCurrentDuration(1500, kTimeoutMs);
+    TurnMotor.configContinuousCurrentLimit(27, kTimeoutMs);
+    
     /**
      * Grab the 360 degree position of the MagEncoder's absolute
      * position, and intitally set the relative sensor to match.
@@ -38,7 +44,7 @@ class SwerveModule2903 {
   }
 
   public void setForward(double speed) {
-    ForwardMotor.set(speed);
+    ForwardMotor.set(speed * (isForward ? 1 : -1));
   }
 
   public boolean getLimit() {
@@ -64,19 +70,39 @@ class SwerveModule2903 {
 
   public int getAbsoluteTurnTicks() {
     return TurnMotor.getSensorCollection().getPulseWidthPosition();// % TICKS_PER_REV;
-   }
+  }
 
   public int getTurnDegrees() {
     return ticksToAngle(getTurnTicks());
   }
 
+  //oregano
+  // public void setTurnDegrees(int degrees) {
+  //   int localDeg = degrees - getTurnDegrees() % 360;
+  //   if (localDeg < -180)
+  //     localDeg += 360;
+  //   else if (localDeg > 180)
+  //     localDeg -= 360;
+  //   TurnMotor.set(ControlMode.Position,angleToTicks(getTurnDegrees()+localDeg));
+  // }
+  
   public void setTurnDegrees(int degrees) {
-    int localDeg = degrees - getTurnDegrees() % 360;
+    if (degrees == -1) return;
+    int currentTargetDeg = ticksToAngle((int)TurnMotor.getClosedLoopTarget());
+    int currentTargetTic = (int)TurnMotor.getClosedLoopTarget();
+    int localDeg = degrees - currentTargetDeg % 360;
     if (localDeg < -180)
-    localDeg += 360;
+      localDeg += 360;
     else if (localDeg > 180)
-    localDeg -= 360;
-    TurnMotor.set(ControlMode.Position,angleToTicks(getTurnDegrees()+localDeg));
+      localDeg -= 360;
+    if (Math.abs(localDeg) > 90) {
+        isForward = !isForward;
+        setZero(currentTargetTic + TICKS_PER_REV/2*(isForward ? 1 : -1));
+        TurnMotor.set(ControlMode.Position,currentTargetTic + TICKS_PER_REV/2*(isForward ? 1 : -1));
+        setTurnDegrees(degrees);
+        return;
+    }
+    TurnMotor.set(ControlMode.Position,angleToTicks(currentTargetDeg+localDeg));
   }
 
   public int ticksToAngle (int ticks) {

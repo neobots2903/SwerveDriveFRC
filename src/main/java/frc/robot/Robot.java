@@ -7,7 +7,11 @@
 
 package frc.robot;
 
+import com.kauailabs.navx.frc.AHRS;
+
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
+import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.command.Command;
 import edu.wpi.first.wpilibj.command.Scheduler;
@@ -15,6 +19,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.commands.*;
 import frc.robot.subsystems.ExampleSubsystem;
+import frc.robot.subsystems.NavX2903;
 import frc.robot.subsystems.SwerveDrive2903;
 
 /**
@@ -27,6 +32,9 @@ import frc.robot.subsystems.SwerveDrive2903;
 public class Robot extends TimedRobot {
   public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
   public static OI m_oi;
+  
+  public static AHRS ahrs;
+  public static NavX2903 navXSubsystem;
 
   Command m_autonomousCommand;
   public static TeleOp teleOpCommand;
@@ -40,10 +48,18 @@ public class Robot extends TimedRobot {
    */
   @Override
   public void robotInit() {
+    navXSubsystem = new NavX2903();
     swerveDriveSubsystem = new SwerveDrive2903();
     swerveDriveSubsystem.init();
     teleOpCommand = new TeleOp();
     m_oi = new OI();
+
+    try {
+      ahrs = new AHRS(SPI.Port.kMXP);
+    } catch (RuntimeException ex) {
+      DriverStation.reportError("Error instantiating navX MXP:  " + ex.getMessage(), true);
+    }
+
     m_chooser.setDefaultOption("EncoderTest", new EncoderTest());
 
     driveJoy = new Joystick(RobotMap.DriveJoy);

@@ -25,7 +25,8 @@ public class TeleOp extends Command {
   // Called just before this Command runs the first time
   @Override
   protected void initialize() {
-    Robot.swerveDriveSubsystem.zeroModules();
+    //Robot.swerveDriveSubsystem.zeroModules();
+    Robot.navXSubsystem.zero();
   }
 
   // Called repeatedly when this Command is scheduled to run
@@ -33,9 +34,12 @@ public class TeleOp extends Command {
   protected void execute() {
     double y = -Robot.driveJoy.getRawAxis(1);
     double x = Robot.driveJoy.getRawAxis(0);
-    double turn = Robot.driveJoy.getRawAxis(4);
+    double turnX = Robot.driveJoy.getRawAxis(4);
+    double turnY = Robot.driveJoy.getRawAxis(5);
+    double forward = Robot.driveJoy.getRawAxis(3);
+    double backward = Robot.driveJoy.getRawAxis(2);
 
-    Robot.swerveDriveSubsystem.swerveDrive(Robot.swerveDriveSubsystem.joystickMag(x, y), Robot.swerveDriveSubsystem.joystickAngle(x, y), turn);
+    Robot.swerveDriveSubsystem.swerveDrive(forward-backward, Robot.swerveDriveSubsystem.joystickAngle(x, y), turnX, false);
   }
 
   // Make this return true when this Command no longer needs to run execute()
