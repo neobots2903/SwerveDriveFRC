@@ -33,8 +33,8 @@ public class RobotMap {
   public static final int RightFrontMotor = 40;
   public static final int RightRearMotor = 31;
   public static final int LeftRearMotor = 38;
-  public static final int RightRearTurn = 32;
-  public static final int LeftFrontTurn = 5;
+  public static final int RightRearTurn = 5;
+  public static final int LeftFrontTurn = 32;
   //Spark IDs
   public static final int LeftFrontForward = 6;
   public static final int RightRearForward = 2;

@@ -9,6 +9,8 @@ package frc.robot;
 
 import com.kauailabs.navx.frc.AHRS;
 
+import edu.wpi.first.networktables.NetworkTable;
+import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.SPI;
@@ -32,6 +34,8 @@ import frc.robot.subsystems.SwerveDrive2903;
 public class Robot extends TimedRobot {
   public static ExampleSubsystem m_subsystem = new ExampleSubsystem();
   public static OI m_oi;
+  public static NetworkTableInstance ntinst;
+  public static NetworkTable leapTable;
   
   public static AHRS ahrs;
   public static NavX2903 navXSubsystem;
@@ -53,6 +57,8 @@ public class Robot extends TimedRobot {
     swerveDriveSubsystem.init();
     teleOpCommand = new TeleOp();
     m_oi = new OI();
+    ntinst = NetworkTableInstance.getDefault();
+    leapTable = ntinst.getTable("leapmotion");
 
     try {
       ahrs = new AHRS(SPI.Port.kMXP);

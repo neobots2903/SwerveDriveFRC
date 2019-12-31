@@ -35,8 +35,8 @@ public class EncoderTest extends Command {
   @Override
   protected void execute() {
     //SmartDashboard.putNumber("Encoder Value: ", encoderMotor.getSelectedSensorPosition());
-    Robot.swerveDriveSubsystem.LeftFront.TurnMotor.set(ControlMode.PercentOutput, 1);
-    Robot.swerveDriveSubsystem.RightRear.TurnMotor.set(ControlMode.PercentOutput, 1);
+    //Robot.swerveDriveSubsystem.LeftFront.TurnMotor.set(ControlMode.PercentOutput, 1);
+    Robot.swerveDriveSubsystem.RightRear.ForwardMotor.set(0.1);
   }
 
   // Make this return true when this Command no longer needs to run execute()
