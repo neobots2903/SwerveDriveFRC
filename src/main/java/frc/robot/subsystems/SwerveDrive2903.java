@@ -13,9 +13,13 @@ import frc.robot.RobotMap;
 public class SwerveDrive2903 extends Subsystem {
 
   public SwerveModule2903 LeftFront;
+  public SwerveModule2903 RightFront;
+  public SwerveModule2903 LeftRear;
   public SwerveModule2903 RightRear;
 
   public List<SwerveModule2903> modules = new ArrayList<SwerveModule2903>();
+  public int[] leftTurnAngles = {-135, -45, 135, 45}; //LF, RF, LR, RR
+  public int[] rightTurnAngles = {45, 135, -45, -135};
 
   final int TICKS_PER_REV = 4096*6;
   final int DEG_PER_REV = 360;
@@ -26,9 +30,13 @@ public class SwerveDrive2903 extends Subsystem {
 
   public void init() {
     LeftFront = new SwerveModule2903(RobotMap.LeftFrontForward, RobotMap.LeftFrontTurn, RobotMap.LeftFrontLimit);
+    RightFront = new SwerveModule2903(RobotMap.TBD, RobotMap.TBD, RobotMap.TBD);
+    LeftRear = new SwerveModule2903(RobotMap.TBD, RobotMap.TBD, RobotMap.TBD);
     RightRear = new SwerveModule2903(RobotMap.RightRearForward, RobotMap.RightRearTurn, RobotMap.RightRearLimit);
-    
+
     modules.add(LeftFront);
+    modules.add(RightFront);
+    modules.add(LeftRear);
     modules.add(RightRear);
   }
 
@@ -88,16 +96,17 @@ public class SwerveDrive2903 extends Subsystem {
 
   public void swerveDrive(double power, double angle, double turn, boolean fieldCentric) {
 
-    if (turn > 0) {
-      LeftFront.setMaxJoyTurnDegrees((isForward)?45:-135);
-      RightRear.setMaxJoyTurnDegrees((isForward)?-135:45);
-    } else {
-      LeftFront.setMaxJoyTurnDegrees((isForward)?135:-45);
-      RightRear.setMaxJoyTurnDegrees((isForward)?-45:135);
-    }
-
-    for (SwerveModule2903 module : modules)
+    int[] angles = (turn < 0) ? leftTurnAngles : rightTurnAngles;
+    turn = Math.abs(turn);
+    int angleIndex = (angle >= 315 || angle <= 45) ? 0 :
+                    (angle >= 45 && angle <= 135) ? 1 :
+                    (angle >= 135 && angle <= 225) ? 2 :
+                    3;
+    for (SwerveModule2903 module : modules) {
+      module.setMaxJoyTurnDegrees(angles[angleIndex]);
       module.setJoyTurnPercent(turn);
+      if (++angleIndex > angles.length - 1) angleIndex = 0;
+    }
     
     if (angle != -1) {
       targetAngle = (int)angle;
