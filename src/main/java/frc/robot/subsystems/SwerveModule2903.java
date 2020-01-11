@@ -17,8 +17,8 @@ public class SwerveModule2903 {
   final int DEG_PER_REV = 360;
   public static final int kPIDLoopIdx = 0;
   public static final int kTimeoutMs = 30;
-  private int turnTic = 0;
-  private int targetTurnDeg = 0;
+  private double turnDegPct = 0;
+  private int turnDegOff = 0;
 
   public SwerveModule2903(int forwardMotorId, int turnMotorId, int limitId) {
     ForwardMotor = new SafeCANSparkMax(forwardMotorId, MotorType.kBrushless);
@@ -67,16 +67,20 @@ public class SwerveModule2903 {
     TurnMotor.setSelectedSensorPosition(newPos, kPIDLoopIdx, kTimeoutMs);
   }
 
-  public void setMaxJoyTurnDegrees(int deg) {
-    targetTurnDeg = deg;
+  public void setTurnDegreeOffset(int deg) {
+    turnDegOff = deg;
   }
 
   public void setJoyTurnPercent(double percent) {
-    turnTic = angleToTicks((int)(targetTurnDeg*percent));
+    turnDegPct = percent;
   }
 
-  public int getJoyTurnTicks() {
-    return turnTic;
+  public int getJoyTurnTicks(double degrees) {
+    double calc = turnDegOff-degrees;
+    if (turnDegPct > 0) calc += 180;
+    if (calc > 180) calc -= 360;
+    else if (calc < -180) calc += 360;
+    return angleToTicks((int)(calc*Math.abs(turnDegPct)));
   }
 
   public int getTurnTicks() {
@@ -113,12 +117,13 @@ public class SwerveModule2903 {
   }
 
   private class SafeCANSparkMax extends CANSparkMax {
-    private int safetyTimeout = 200;
+    private int safetyTimeout;
     private long endgame = System.currentTimeMillis();
     private boolean running = true;
 
     public SafeCANSparkMax(int deviceID, MotorType type) {
         super(deviceID, type);
+        setSafetyTimeout(200);
         run();
     }
 

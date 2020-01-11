@@ -13,13 +13,11 @@ import frc.robot.RobotMap;
 public class SwerveDrive2903 extends Subsystem {
 
   public SwerveModule2903 LeftFront;
-  public SwerveModule2903 RightFront;
-  public SwerveModule2903 LeftRear;
+  // public SwerveModule2903 RightFront;
   public SwerveModule2903 RightRear;
+  // public SwerveModule2903 LeftRear;
 
   public List<SwerveModule2903> modules = new ArrayList<SwerveModule2903>();
-  public int[] leftTurnAngles = {-135, -45, 135, 45}; //LF, RF, LR, RR
-  public int[] rightTurnAngles = {45, 135, -45, -135};
 
   final int TICKS_PER_REV = 4096*6;
   final int DEG_PER_REV = 360;
@@ -30,14 +28,19 @@ public class SwerveDrive2903 extends Subsystem {
 
   public void init() {
     LeftFront = new SwerveModule2903(RobotMap.LeftFrontForward, RobotMap.LeftFrontTurn, RobotMap.LeftFrontLimit);
-    RightFront = new SwerveModule2903(RobotMap.TBD, RobotMap.TBD, RobotMap.TBD);
-    LeftRear = new SwerveModule2903(RobotMap.TBD, RobotMap.TBD, RobotMap.TBD);
+    // RightFront = new SwerveModule2903(RobotMap.TBD, RobotMap.TBD, RobotMap.TBD);
     RightRear = new SwerveModule2903(RobotMap.RightRearForward, RobotMap.RightRearTurn, RobotMap.RightRearLimit);
+    // LeftRear = new SwerveModule2903(RobotMap.TBD, RobotMap.TBD, RobotMap.TBD);
+
+    LeftFront.setTurnDegreeOffset(225);
+    // RightFront.setTurnDegreeOffset(315);
+    RightRear.setTurnDegreeOffset(45);
+    // LeftRear.setTurnDegreeOffset(135);
 
     modules.add(LeftFront);
-    modules.add(RightFront);
-    modules.add(LeftRear);
+    // modules.add(RightFront);
     modules.add(RightRear);
+    // modules.add(LeftRear);
   }
 
   public void zeroModulesLimit() {
@@ -75,7 +78,7 @@ public class SwerveDrive2903 extends Subsystem {
 
   public void setTurnDegrees(int degrees) {
     if (degrees == -1) return;
-    int currentTargetTic = (int)LeftFront.TurnMotor.getClosedLoopTarget()-LeftFront.getJoyTurnTicks();
+    int currentTargetTic = (int)LeftFront.TurnMotor.getClosedLoopTarget()-LeftFront.getJoyTurnTicks(degrees);
     int localTic = LeftFront.angleToTicks(degrees) - currentTargetTic % TICKS_PER_REV;
     if (localTic < -TICKS_PER_REV/2)
       localTic += TICKS_PER_REV;
@@ -91,35 +94,24 @@ public class SwerveDrive2903 extends Subsystem {
         return;
     }
     for (SwerveModule2903 module : modules)
-      module.TurnMotor.set(ControlMode.Position,currentTargetTic+localTic+module.getJoyTurnTicks());
+      module.TurnMotor.set(ControlMode.Position,currentTargetTic+localTic+module.getJoyTurnTicks(degrees));
   }
 
   public void swerveDrive(double power, double angle, double turn, boolean fieldCentric) {
 
-    int[] angles = (turn < 0) ? leftTurnAngles : rightTurnAngles;
-    turn = Math.abs(turn);
-    int angleIndex = (angle >= 315 || angle <= 45) ? 0 :
-                    (angle >= 45 && angle <= 135) ? 1 :
-                    (angle >= 135 && angle <= 225) ? 2 :
-                    3;
-    for (SwerveModule2903 module : modules) {
-      module.setMaxJoyTurnDegrees(angles[angleIndex]);
+    for (SwerveModule2903 module : modules)
       module.setJoyTurnPercent(turn);
-      if (++angleIndex > angles.length - 1) angleIndex = 0;
-    }
     
-    if (angle != -1) {
+    if (angle != -1) 
       targetAngle = (int)angle;
-      setTurnDegrees((int)(angle-((fieldCentric)?Robot.navXSubsystem.turnAngle():0)));
-    } else {
-      setTurnDegrees((int)(targetAngle-((fieldCentric)?Robot.navXSubsystem.turnAngle():0)));
-    }
+    setTurnDegrees((int)(targetAngle-((fieldCentric)?Robot.navXSubsystem.turnAngle():0)));
 
-    //LeftRear.setForward(power);
     if (deadzone < Math.abs(power)) {
       setForward(power/5);
     }
-    // RightFront.setForward(power);
+
+    SmartDashboard.putNumber("LeftFront Target Turn", LeftFront.ticksToAngle(LeftFront.getJoyTurnTicks(targetAngle)));
+    SmartDashboard.putNumber("RightRear Target Turn", RightRear.ticksToAngle(RightRear.getJoyTurnTicks(targetAngle)));
     SmartDashboard.putNumber("Swerve Forward Speed", power);
     SmartDashboard.putNumber("Swerve Turn Speed", turn);
     SmartDashboard.putNumber("Swerve Current Angle", LeftFront.getTurnDegrees());
@@ -134,13 +126,6 @@ public class SwerveDrive2903 extends Subsystem {
       SmartDashboard.putNumber("Swerve LeftFront Amperage", LeftFront.TurnMotor.getOutputCurrent());
     //if (SmartDashboard.getNumber("Swerve RightRear Amperage", 0) < RightRear.TurnMotor.getOutputCurrent())
       SmartDashboard.putNumber("Swerve RightRear Amperage", RightRear.TurnMotor.getOutputCurrent());
-      
-    // if (LeftFront.TurnMotor.getOutputCurrent() > 45 || RightRear.TurnMotor.getOutputCurrent() > 45 ) {
-    //   for (SwerveModule2903 module : modules)
-    //     module.TurnMotor.set(ControlMode.PercentOutput, 0);
-    //   disabled = true;
-    // }
-    // SmartDashboard.putBoolean("Wheels disabled?", disabled);
   }
 
   public void TankDrive(double left, double right) {

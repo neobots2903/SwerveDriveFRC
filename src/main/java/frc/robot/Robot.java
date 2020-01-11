@@ -36,6 +36,7 @@ public class Robot extends TimedRobot {
   public static OI m_oi;
   public static NetworkTableInstance ntinst;
   public static NetworkTable leapTable;
+  public static NetworkTable tensorTable;
   
   public static AHRS ahrs;
   public static NavX2903 navXSubsystem;
@@ -59,6 +60,7 @@ public class Robot extends TimedRobot {
     m_oi = new OI();
     ntinst = NetworkTableInstance.getDefault();
     leapTable = ntinst.getTable("leapmotion");
+    tensorTable = ntinst.getTable("tensorflow");
 
     try {
       ahrs = new AHRS(SPI.Port.kMXP);
